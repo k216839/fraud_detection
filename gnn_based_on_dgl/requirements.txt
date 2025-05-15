@@ -1,0 +1,9 @@
+numpy==1.26.4
+torch==2.1.0+cu118 --index-url https://download.pytorch.org/whl/cu118
+torchdata==0.7.1
+dgl
+pyyaml
+pydantic
+scikit-learn==1.6.1
+matplotlib==3.9.4
+gdown==5.2.0
