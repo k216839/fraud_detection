@@ -1,5 +1,5 @@
 numpy==1.26.4
-torch==2.1.0+cu118 --index-url https://download.pytorch.org/whl/cu118
+torch==2.1.0
 torchdata==0.7.1
 dgl
 pyyaml
