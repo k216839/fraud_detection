@@ -7,7 +7,32 @@ import matplotlib.pyplot as plt
 
 
 def get_metrics(pred, pred_proba, labels, mask, out_dir):
-    labels, mask = labels, mask
+    """
+    Hàm này lọc ra các phần tử thuộc tập đánh giá (theo `mask`), sau đó tính các chỉ số:
+        - accuracy, f1 score, precision, recall
+        - roc_auc, pr_auc
+        - average precision
+        - confusion_matrix
+        Sau đó lưu biểu đồ ROC và Precision-Recall vào thư mục chỉ định.
+    Args:
+        pred (np.ndarray): Dự đoán nhãn (0/1) của mô hình.
+        pred_proba (np.ndarray): Xác suất dự đoán cho lớp positive.
+        labels (np.ndarray): Nhãn thật (ground truth) dạng 0/1.
+        mask (np.ndarray): Mặt nạ boolean hoặc nhị phân (1/0) để chọn các phần tử cần đánh giá.
+        out_dir (str): Đường dẫn thư mục để lưu ảnh ROC và PR curve.
+
+    Returns:
+        Tuple:
+            - acc (float): Accuracy
+            - f1 (float): F1 score
+            - precision (float): Precision
+            - recall (float): Recall
+            - roc_auc (float): Area under ROC curve
+            - pr_auc (float): Area under Precision-Recall curve
+            - ap (float): Average Precision
+            - confusion_matrix (pd.DataFrame)
+    """
+    # Lọc theo mask
     labels, pred, pred_proba = labels[np.where(mask)], pred[np.where(mask)], pred_proba[np.where(mask)]
 
     acc = ((pred == labels)).sum() / mask.sum()
@@ -21,6 +46,7 @@ def get_metrics(pred, pred_proba, labels, mask, out_dir):
     recall = true_pos/(true_pos + false_neg) if (true_pos + false_neg) > 0 else 0
 
     f1 = 2*(precision*recall)/(precision + recall) if (precision + recall) > 0 else 0
+
     confusion_matrix = pd.DataFrame(np.array([[true_pos, false_pos], [false_neg, true_neg]]),
                                     columns=["labels positive", "labels negative"],
                                     index=["predicted positive", "predicted negative"])
@@ -68,8 +94,33 @@ def save_pr_curve(fpr, tpr, pr_auc, ap, location):
 
 
 def save_graph_drawing(g, location):
+    """
+    Vẽ và lưu biểu đồ đồ thị bằng NetworkX + Matplotlib.
+
+    Mỗi node sẽ được tô màu tùy theo tên node:
+    - Nếu chứa từ 'user' → màu sáng hơn.
+    - Ngược lại → màu tối hơn.
+
+    Args:
+        g (networkx.Graph): Đồ thị cần vẽ.
+        location (str): Đường dẫn lưu ảnh vẽ đồ thị (ví dụ: "output/graph.png").
+    """
     plt.figure(figsize=(12, 8))
-    node_colors = {node: 0.0 if 'user' in node else 0.5 for node in g.nodes()}
-    nx.draw(g, node_size=10000, pos=nx.spring_layout(g), with_labels=True, font_size=14,
-            node_color=list(node_colors.values()), font_color='white')
+
+    # Gán màu cho từng node:
+    # 'user' → 0.0 (sáng), còn lại → 0.5 (tối)
+    node_colors = {
+        node: 0.0 if 'user' in str(node) else 0.5
+        for node in g.nodes()
+    }
+
+    nx.draw(
+        g,
+        pos=nx.spring_layout(g),       
+        node_size=10000, 
+        node_color=list(node_colors.values()),
+        with_labels=True, 
+        font_size=14,
+        font_color='white'
+    )
     plt.savefig(location, bbox_inches='tight')
